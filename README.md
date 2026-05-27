@@ -38,7 +38,8 @@ The dashboard never stores a GitHub token — it signs licenses locally; you com
 
 | Path           | What                                                                 |
 |----------------|----------------------------------------------------------------------|
-| `PROTOCOL.md`  | The spec every component implements. **Read this first.**            |
+| `GUIDE.md`     | **How to use OwnerPay on every project** — the step-by-step playbook.|
+| `PROTOCOL.md`  | The spec every component implements.                                 |
 | `tools/`       | `keygen.mjs` — generate your RSA signing keypair.                    |
 | `dashboard/`   | React (Vite) app — runs locally **and** deploys to GitHub Pages.    |
 | `sdk/php/`     | Drop-in PHP client.                                                  |
