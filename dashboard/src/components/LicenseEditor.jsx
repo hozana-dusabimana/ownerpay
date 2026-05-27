@@ -12,7 +12,7 @@ const POLICY_FIELDS = [
   ['offlineGraceDays', 'Offline grace days'],
 ];
 
-export default function LicenseEditor({ license, settings, onChange, onDelete, onBack }) {
+export default function LicenseEditor({ license, settings, secrets, onChange, onDelete, onBack }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const [token, setToken] = useState('');
@@ -47,9 +47,9 @@ export default function LicenseEditor({ license, settings, onChange, onDelete, o
 
   // ---- signing / publishing ----
   async function signNow() {
-    if (!settings.privateKey) throw new Error('No signing key. Add it in Settings.');
+    if (!secrets?.privateKey) throw new Error('Vault locked or no signing key. Unlock in Settings.');
     if (!license.id) throw new Error('Set a License ID first.');
-    const t = await signJwt(buildClaims(license), settings.privateKey);
+    const t = await signJwt(buildClaims(license), secrets.privateKey);
     setToken(t);
     return t;
   }
@@ -60,7 +60,7 @@ export default function LicenseEditor({ license, settings, onChange, onDelete, o
       const t = await signNow();
       const path = filePath(settings, license);
       const url = await publishFile({
-        token: settings.githubToken,
+        token: secrets.githubToken,
         owner: settings.owner, repo: settings.repo, branch: settings.branch,
         path, content: t,
         message: `OwnerPay: ${license.project || license.id}`,
@@ -163,7 +163,7 @@ export default function LicenseEditor({ license, settings, onChange, onDelete, o
           </>
         )}
         <div className="btn-row">
-          <button onClick={publish} disabled={busy || !settings.githubToken || !settings.owner}>
+          <button onClick={publish} disabled={busy || !secrets?.githubToken || !settings.owner}>
             {busy ? 'Publishing…' : '🚀 Publish to GitHub'}
           </button>
           <button className="secondary" onClick={download}>⬇ Download .jwt</button>

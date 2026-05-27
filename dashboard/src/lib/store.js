@@ -4,9 +4,9 @@
 const SETTINGS_KEY = 'ownerpay.settings';
 const LICENSES_KEY = 'ownerpay.licenses';
 
+// NOTE: secrets (privateKey, githubToken) are NOT stored here — they live in the
+// passphrase-encrypted vault (lib/vault.js) and only in memory. These are non-secret.
 const DEFAULT_SETTINGS = {
-  privateKey: '',
-  githubToken: '',
   owner: '',
   repo: 'ownerpay-licenses',
   branch: 'main',
@@ -30,8 +30,20 @@ function read(key, fallback) {
   }
 }
 
-export const loadSettings = () => ({ ...DEFAULT_SETTINGS, ...read(SETTINGS_KEY, {}) });
-export const saveSettings = (s) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+export function loadSettings() {
+  const stored = read(SETTINGS_KEY, {});
+  // Migration: scrub any plaintext secrets left by an earlier version.
+  if (stored.privateKey || stored.githubToken) {
+    delete stored.privateKey;
+    delete stored.githubToken;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(stored));
+  }
+  return { ...DEFAULT_SETTINGS, ...stored };
+}
+export const saveSettings = (s) => {
+  const { privateKey, githubToken, ...safe } = s; // never persist secrets here
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(safe));
+};
 
 export const loadLicenses = () => read(LICENSES_KEY, []);
 export const saveLicenses = (list) => localStorage.setItem(LICENSES_KEY, JSON.stringify(list));
