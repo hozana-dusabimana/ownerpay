@@ -46,7 +46,7 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
 
   // ---- signing / publishing ----
   async function signNow() {
-    if (!secrets?.privateKey) throw new Error('Vault locked or no signing key. Unlock in Settings.');
+    if (!secrets?.privateKey) throw new Error('No signing key yet — add your private key in Settings → Save key.');
     if (!license.id) throw new Error('Set a License ID first.');
     const t = await signJwt(buildClaims(license), secrets.privateKey);
     setToken(t);
