@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import * as store from './lib/store';
-import { vaultExists } from './lib/vault';
+import { vaultExists, openVault } from './lib/vault';
 import Settings from './components/Settings.jsx';
 import LicenseList from './components/LicenseList.jsx';
 import LicenseEditor from './components/LicenseEditor.jsx';
-import UnlockScreen from './components/UnlockScreen.jsx';
+import LoginScreen from './components/LoginScreen.jsx';
 
-const IDLE_LOCK_MS = 15 * 60 * 1000; // auto-lock after 15 min of inactivity
+const IDLE_LOGOUT_MS = 15 * 60 * 1000; // auto log out after 15 min of inactivity
 
 export default function App() {
   const [settings, setSettings] = useState(store.loadSettings);
   const [licenses, setLicenses] = useState(store.loadLicenses);
-  const [session, setSession] = useState(null);   // { secrets, passphrase } — memory only
+  const [session, setSession] = useState(null);   // { secrets, passphrase } — memory only; null = logged out
   const [hasVault, setHasVault] = useState(vaultExists());
   const [view, setView] = useState('list');
   const [editingKey, setEditingKey] = useState(null);
@@ -19,23 +19,29 @@ export default function App() {
   useEffect(() => store.saveSettings(settings), [settings]);
   useEffect(() => store.saveLicenses(licenses), [licenses]);
 
-  // Auto-lock: clear in-memory secrets after inactivity.
+  // Auto-logout: clear the session (and in-memory key) after inactivity.
   useEffect(() => {
     if (!session) return;
     let timer;
-    const reset = () => { clearTimeout(timer); timer = setTimeout(() => setSession(null), IDLE_LOCK_MS); };
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => setSession(null), IDLE_LOGOUT_MS); };
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
     events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
     reset();
     return () => { clearTimeout(timer); events.forEach((e) => window.removeEventListener(e, reset)); };
   }, [session]);
 
-  const locked = hasVault && !session;
-  const secrets = session?.secrets || null;
-
-  if (locked) {
-    return <UnlockScreen onUnlock={(s, pass) => setSession({ secrets: s, passphrase: pass })} />;
+  async function handleLogin(password) {
+    // The login password doubles as the key-vault passphrase.
+    let secrets = null;
+    if (vaultExists()) {
+      try { secrets = await openVault(password); } catch { secrets = null; }
+    }
+    setSession({ secrets, passphrase: password });
   }
+
+  if (!session) return <LoginScreen onLogin={handleLogin} />;
+
+  const secrets = session.secrets;
 
   function createLicense() {
     const lic = { ...store.newLicense(), _key: crypto.randomUUID() };
@@ -50,7 +56,7 @@ export default function App() {
   }
 
   const editing = licenses.find((l) => l._key === editingKey) || null;
-  const configured = secrets && settings.owner;
+  const configured = secrets?.privateKey && settings.owner;
 
   return (
     <div>
@@ -60,11 +66,9 @@ export default function App() {
         <button className={`tab ${view === 'settings' ? 'active' : ''}`} onClick={() => setView('settings')}>Settings</button>
         <div className="spacer" />
         {!configured && view !== 'settings' && (
-          <span className="muted">⚙️ Set up your key & passphrase in Settings first</span>
+          <span className="muted">⚙️ Add your signing key in Settings to start publishing</span>
         )}
-        {hasVault && session && (
-          <button className="secondary" onClick={() => setSession(null)} title="Lock now">🔒 Lock</button>
-        )}
+        <button className="secondary" onClick={() => setSession(null)} title="Log out">🔒 Log out</button>
       </div>
 
       <div className="container">
