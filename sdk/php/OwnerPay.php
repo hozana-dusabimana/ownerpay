@@ -90,6 +90,19 @@ class OwnerPay
     public function isLocked(): bool    { return in_array($this->level(), ['locked', 'shutdown'], true); }
     public function isShutdown(): bool  { return $this->level() === 'shutdown'; }
 
+    /**
+     * Signed config carried in the license token (the `config` claim) — for ENTANGLEMENT:
+     * read values your app genuinely needs from here, so stubbing the check loses them.
+     * Returns [] if there is no valid license. Call check() first so the token is cached.
+     */
+    public function config(): array
+    {
+        $c = $this->readCache();
+        if (empty($c['token'])) return [];
+        $claims = $this->verify($c['token']);
+        return is_array($claims['config'] ?? null) ? $claims['config'] : [];
+    }
+
     /** Apply the default UX for the current level. Call once near the top of your app. */
     public function enforce(): void
     {

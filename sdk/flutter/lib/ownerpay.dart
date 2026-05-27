@@ -95,6 +95,16 @@ class OwnerPay {
   Future<bool> isLocked() async => ['locked', 'shutdown'].contains(await level());
   Future<bool> isShutdown() async => (await level()) == 'shutdown';
 
+  /// Signed config from the token's `config` claim — for ENTANGLEMENT: read values your
+  /// app genuinely needs from here so stubbing the check loses them. {} if no valid license.
+  Map<String, dynamic> config() {
+    final token = _readCache()['token'] as String?;
+    if (token == null) return {};
+    final claims = _verify(token);
+    final cfg = claims?['config'];
+    return cfg is Map<String, dynamic> ? cfg : {};
+  }
+
   // ---- protocol core (mirrors PROTOCOL.md §3) ----
   OwnerPayState _computeState(Map<String, dynamic> c, int now) {
     if (c['status'] == 'revoked') return OwnerPayState('shutdown', null, 'License revoked.', now);

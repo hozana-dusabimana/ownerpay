@@ -123,6 +123,14 @@ export function createOwnerPay(opts) {
     isActive: async () => (await check()).level === 'active',
     isLocked: async () => ['locked', 'shutdown'].includes((await check()).level),
     isShutdown: async () => (await check()).level === 'shutdown',
+    // Signed config from the token's `config` claim — for ENTANGLEMENT: read values your
+    // app genuinely needs from here so stubbing the check loses them. {} if no valid license.
+    config: async () => {
+      const c = cache.get() || {};
+      if (!c.token) return {};
+      const claims = await verify(c.token);
+      return (claims && claims.config) || {};
+    },
   };
 }
 

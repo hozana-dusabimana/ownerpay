@@ -160,9 +160,24 @@ fully prevent that, but you can deter it and keep the legal high ground — use 
    (new OwnerPay([...]))->enforce();
    ```
 
-2. **Entangle it.** Don't leave `enforce()` as one deletable line. Gate *real* features on
-   the level and read config the app genuinely needs from the signed token, so removing the
-   check breaks the app instead of cleanly disabling a banner.
+2. **Entangle it (highest-impact, fits any stack).** Don't leave `enforce()` as one
+   deletable line. Make the license *load-bearing*:
+   - **Read config the app needs from the signed token** via `config()`. In the demo, the
+     app title, feature set, and export limit all come from the license — stub the check and
+     they vanish, so the app fails closed:
+     ```php
+     $cfg = $op->config();                 // signed; {} if license missing or tampered
+     if (!$cfg) exit('Unlicensed build');  // fail closed — no usable config
+     $title    = $cfg['appTitle'];
+     $features = $cfg['features'];         // gate real features on this
+     ```
+   - **Gate real features inline, in several places** (not one central switch):
+     ```php
+     if (in_array('export', $features) && $op->level() !== 'locked') { /* allow export */ }
+     ```
+   To bypass, an attacker must reproduce all that config **and** forge a valid signature
+   (needs your private key) — removal is no longer one line; it breaks the app. Working
+   example: [`demo/index.php`](demo/index.php). All SDKs expose `config()`.
 
 3. **Deliver builds, not source** where you can (bundled+obfuscated JS, compiled `.jar`,
    Flutter release build, a PHP encoder). No clean source = nothing easy for an AI to edit.

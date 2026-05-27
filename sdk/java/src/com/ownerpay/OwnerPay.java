@@ -108,6 +108,20 @@ public class OwnerPay {
         return state;
     }
 
+    /**
+     * Signed config from the token's `config` claim — for ENTANGLEMENT: read values your
+     * app genuinely needs from here so stubbing the check loses them. Empty map if no
+     * valid license. Call check() first so the token is cached.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> config() {
+        String token = (String) readCache().get("token");
+        if (token == null) return new HashMap<>();
+        Map<String, Object> claims = (Map<String, Object>) verify(token);
+        Object cfg = claims == null ? null : claims.get("config");
+        return cfg instanceof Map ? (Map<String, Object>) cfg : new HashMap<>();
+    }
+
     // ---- protocol core (mirrors PROTOCOL.md §3) ----
     @SuppressWarnings("unchecked")
     State computeState(Map<String, Object> c, long now) {

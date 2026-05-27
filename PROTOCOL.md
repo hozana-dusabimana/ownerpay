@@ -43,6 +43,11 @@ The file contents are the raw JWT string.
     "checkIntervalHours": 24,    // how often the SDK should re-fetch the token
     "offlineGraceDays": 14       // max days the SDK tolerates no network before escalating
   },
+  "config": {                    // OPTIONAL signed app config — exposed by the SDK's config()
+    "appTitle": "Acme CRM",      // for ENTANGLEMENT: have the app read values it genuinely
+    "features": ["customers"],   // needs from here, so stubbing the check loses them and the
+    "exportLimit": 5000          // app fails closed (see GUIDE.md). Faking it needs the key.
+  },
   "milestones": [
     { "id": "deposit", "label": "Deposit", "amount": 200, "currency": "USD",
       "dueDate": "2026-01-01", "paid": true,  "paidDate": "2025-12-20" },

@@ -95,6 +95,16 @@ class OwnerPay:
     def is_shutdown(self) -> bool:
         return self.level() == "shutdown"
 
+    def config(self) -> dict:
+        """Signed config from the token's `config` claim — for ENTANGLEMENT: read values
+        your app genuinely needs from here so stubbing the check loses them. {} if no
+        valid license. Call check() first so the token is cached."""
+        cache = self._read_cache()
+        if not cache.get("token"):
+            return {}
+        claims = self._verify(cache["token"])
+        return claims.get("config", {}) if claims else {}
+
     # ---- JWT verify (RS256) ----
     def _verify(self, jwt: str) -> dict | None:
         parts = jwt.split(".")
