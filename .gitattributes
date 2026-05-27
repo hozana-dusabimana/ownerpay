@@ -1,0 +1,16 @@
+# Never apply line-ending conversion to signed tokens or keys — a stray CRLF would
+# change the bytes and break signature verification.
+*.jwt   -text
+*.pem   -text
+
+# Normalize source line endings to LF in the repo (avoids cross-platform churn).
+*.php   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.mjs   text eol=lf
+*.py    text eol=lf
+*.java  text eol=lf
+*.dart  text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
