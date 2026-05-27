@@ -71,7 +71,6 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
   const predictedUrl = settings.owner && license.id
     ? rawUrl({ owner: settings.owner, repo: settings.repo, branch: settings.branch, path: repoPath })
     : '';
-  const commitSnippet = `git add ${repoPath}\ngit commit -m "OwnerPay: ${license.id || 'license'}"\ngit push`;
   const copy = (text) => navigator.clipboard?.writeText(text);
 
   return (
@@ -136,12 +135,13 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
       </div>
 
       <div className="card">
-        <h2>Sign &amp; commit</h2>
-        <p className="muted">Sign the license, download the <span className="mono">.jwt</span>, then commit it to your
-          license repo with git. No GitHub token is stored in this dashboard.</p>
+        <h2>Signed license</h2>
+        <p className="muted">Sign and download the <span className="mono">.jwt</span>. Host it anywhere your SDK can
+          reach over HTTPS (e.g. a public GitHub repo or GitHub Pages) and point the SDK at that URL. The dashboard
+          only signs — it needs no GitHub access.</p>
         {predictedUrl && (
           <>
-            <label>SDK license URL (point the SDK here)</label>
+            <label>Suggested SDK license URL</label>
             <div className="mono">{predictedUrl}</div>
           </>
         )}
@@ -152,12 +152,6 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
           <button className="secondary" onClick={() => setShowClaims((s) => !s)}>{showClaims ? 'Hide' : 'View'} claims</button>
         </div>
         {msg && <div className={`notice ${msg.ok ? 'ok' : 'err'}`}>{msg.text}</div>}
-        <h3>Then commit it to your license repo</h3>
-        <p className="muted" style={{ fontSize: 12 }}>Move the downloaded file to <span className="mono">{repoPath}</span> in your repo, then:</p>
-        <div className="btn-row" style={{ marginBottom: 6 }}>
-          <button className="secondary" onClick={() => copy(commitSnippet)} disabled={!license.id}>Copy git commands</button>
-        </div>
-        <pre className="mono" style={{ whiteSpace: 'pre-wrap' }}>{commitSnippet}</pre>
         {showClaims && <pre className="mono" style={{ whiteSpace: 'pre-wrap', marginTop: 10 }}>{JSON.stringify(claims, null, 2)}</pre>}
         {token && (
           <>
