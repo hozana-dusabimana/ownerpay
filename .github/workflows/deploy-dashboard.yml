@@ -3,7 +3,7 @@
 # so no manual Settings step is needed.
 #
 # Reminder: anyone who opens the Pages URL only sees an empty dashboard — your signing
-# key and GitHub token live in *your* browser's localStorage, never in the build.
+# key lives passphrase-encrypted in *your* browser's localStorage, never in the build.
 name: Deploy dashboard to Pages
 
 on:

@@ -60,7 +60,7 @@ export default function App() {
         <button className={`tab ${view === 'settings' ? 'active' : ''}`} onClick={() => setView('settings')}>Settings</button>
         <div className="spacer" />
         {!configured && view !== 'settings' && (
-          <span className="muted">⚙️ Set up your key, token & passphrase in Settings first</span>
+          <span className="muted">⚙️ Set up your key & passphrase in Settings first</span>
         )}
         {hasVault && session && (
           <button className="secondary" onClick={() => setSession(null)} title="Lock now">🔒 Lock</button>

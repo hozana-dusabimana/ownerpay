@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { signJwt } from '../lib/jwt';
-import { publishFile, rawUrl } from '../lib/github';
+import { rawUrl } from '../lib/github';
 import { buildClaims, filePath, newMilestone, slug, today } from '../lib/store';
 import TimelinePreview from './TimelinePreview.jsx';
 
@@ -13,7 +13,6 @@ const POLICY_FIELDS = [
 ];
 
 export default function LicenseEditor({ license, settings, secrets, onChange, onDelete, onBack }) {
-  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const [token, setToken] = useState('');
   const [showClaims, setShowClaims] = useState(false);
@@ -54,26 +53,6 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
     return t;
   }
 
-  async function publish() {
-    setBusy(true); setMsg(null);
-    try {
-      const t = await signNow();
-      const path = filePath(settings, license);
-      const url = await publishFile({
-        token: secrets.githubToken,
-        owner: settings.owner, repo: settings.repo, branch: settings.branch,
-        path, content: t,
-        message: `OwnerPay: ${license.project || license.id}`,
-      });
-      update({ publishedUrl: url });
-      setMsg({ ok: true, text: `Published to GitHub. Deployed apps now read the updated status.` });
-    } catch (e) {
-      setMsg({ ok: false, text: e.message });
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function download() {
     try {
       const t = await signNow();
@@ -88,9 +67,11 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
     }
   }
 
+  const repoPath = filePath(settings, license);
   const predictedUrl = settings.owner && license.id
-    ? rawUrl({ owner: settings.owner, repo: settings.repo, branch: settings.branch, path: filePath(settings, license) })
+    ? rawUrl({ owner: settings.owner, repo: settings.repo, branch: settings.branch, path: repoPath })
     : '';
+  const commitSnippet = `git add ${repoPath}\ngit commit -m "OwnerPay: ${license.id || 'license'}"\ngit push`;
   const copy = (text) => navigator.clipboard?.writeText(text);
 
   return (
@@ -155,7 +136,9 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
       </div>
 
       <div className="card">
-        <h2>Publish</h2>
+        <h2>Sign &amp; commit</h2>
+        <p className="muted">Sign the license, download the <span className="mono">.jwt</span>, then commit it to your
+          license repo with git. No GitHub token is stored in this dashboard.</p>
         {predictedUrl && (
           <>
             <label>SDK license URL (point the SDK here)</label>
@@ -163,15 +146,18 @@ export default function LicenseEditor({ license, settings, secrets, onChange, on
           </>
         )}
         <div className="btn-row">
-          <button onClick={publish} disabled={busy || !secrets?.githubToken || !settings.owner}>
-            {busy ? 'Publishing…' : '🚀 Publish to GitHub'}
-          </button>
-          <button className="secondary" onClick={download}>⬇ Download .jwt</button>
-          <button className="secondary" onClick={() => copy(predictedUrl)} disabled={!predictedUrl}>Copy URL</button>
+          <button onClick={download} disabled={!license.id}>⬇ Download {license.id || 'license'}.jwt</button>
           <button className="secondary" onClick={async () => copy(await signNow())}>Copy token</button>
+          <button className="secondary" onClick={() => copy(predictedUrl)} disabled={!predictedUrl}>Copy URL</button>
           <button className="secondary" onClick={() => setShowClaims((s) => !s)}>{showClaims ? 'Hide' : 'View'} claims</button>
         </div>
         {msg && <div className={`notice ${msg.ok ? 'ok' : 'err'}`}>{msg.text}</div>}
+        <h3>Then commit it to your license repo</h3>
+        <p className="muted" style={{ fontSize: 12 }}>Move the downloaded file to <span className="mono">{repoPath}</span> in your repo, then:</p>
+        <div className="btn-row" style={{ marginBottom: 6 }}>
+          <button className="secondary" onClick={() => copy(commitSnippet)} disabled={!license.id}>Copy git commands</button>
+        </div>
+        <pre className="mono" style={{ whiteSpace: 'pre-wrap' }}>{commitSnippet}</pre>
         {showClaims && <pre className="mono" style={{ whiteSpace: 'pre-wrap', marginTop: 10 }}>{JSON.stringify(claims, null, 2)}</pre>}
         {token && (
           <>

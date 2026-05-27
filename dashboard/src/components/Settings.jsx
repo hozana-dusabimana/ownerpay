@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { validatePrivateKey } from '../lib/jwt';
-import { checkAccess } from '../lib/github';
 import { createVault, destroyVault } from '../lib/vault';
 
 export default function Settings({ settings, onSave, secrets, session, hasVault, onSession, onVaultChange }) {
   const [net, setNet] = useState(settings);
   const [keyInput, setKeyInput] = useState(secrets?.privateKey || '');
-  const [tokenInput, setTokenInput] = useState(secrets?.githubToken || '');
   const [pass, setPass] = useState('');
   const [pass2, setPass2] = useState('');
   const [newPass, setNewPass] = useState('');
@@ -14,7 +12,6 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
   const [keyMsg, setKeyMsg] = useState(null);
   const [ghMsg, setGhMsg] = useState(null);
   const [vaultMsg, setVaultMsg] = useState(null);
-  const [busy, setBusy] = useState(false);
 
   const setN = (k) => (e) => setNet({ ...net, [k]: e.target.value });
 
@@ -23,25 +20,13 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
     setKeyMsg(err ? { ok: false, text: err } : { ok: true, text: 'Private key is valid (RSA PKCS#8).' });
   }
 
-  async function testGitHub() {
-    setBusy(true); setGhMsg(null);
-    try {
-      const info = await checkAccess({ token: tokenInput, owner: net.owner, repo: net.repo });
-      setGhMsg({ ok: true, text: `Connected. Repo is ${info.private ? 'private' : 'public'}, default branch "${info.defaultBranch}".`
-        + (info.private ? ' ⚠️ Private repos are NOT readable by deployed SDKs — use a public repo or GitHub Pages.' : '') });
-    } catch (e) {
-      setGhMsg({ ok: false, text: e.message });
-    } finally { setBusy(false); }
-  }
-
   async function createVaultNow() {
     setVaultMsg(null);
     if (pass !== pass2) return setVaultMsg({ ok: false, text: 'Passphrases do not match.' });
     const err = await validatePrivateKey(keyInput);
     if (err) return setVaultMsg({ ok: false, text: err });
-    if (!tokenInput) return setVaultMsg({ ok: false, text: 'Enter your GitHub token.' });
     try {
-      const s = { privateKey: keyInput, githubToken: tokenInput };
+      const s = { privateKey: keyInput };
       await createVault(s, pass);
       onVaultChange(true);
       onSession({ secrets: s, passphrase: pass });
@@ -55,10 +40,10 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
     const err = await validatePrivateKey(keyInput);
     if (err) return setVaultMsg({ ok: false, text: err });
     try {
-      const s = { privateKey: keyInput, githubToken: tokenInput };
+      const s = { privateKey: keyInput };
       await createVault(s, session.passphrase);
       onSession({ secrets: s, passphrase: session.passphrase });
-      setVaultMsg({ ok: true, text: 'Secrets updated and re-encrypted.' });
+      setVaultMsg({ ok: true, text: 'Key updated and re-encrypted.' });
     } catch (e) { setVaultMsg({ ok: false, text: e.message }); }
   }
 
@@ -81,16 +66,14 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
   return (
     <>
       <div className="card">
-        <h2>🔐 Secrets vault {hasVault && <span className="pill active" style={{ marginLeft: 6 }}>unlocked</span>}</h2>
-        <p className="muted">Your <strong>private key</strong> and <strong>GitHub token</strong> are encrypted with a
-          master passphrase (PBKDF2 + AES-GCM) and stored as ciphertext only. Plaintext lives in memory and is wiped on
-          lock / after 15 min idle. Nothing here is ever uploaded.</p>
+        <h2>🔐 Signing key vault {hasVault && <span className="pill active" style={{ marginLeft: 6 }}>unlocked</span>}</h2>
+        <p className="muted">Your <strong>private key</strong> is encrypted with a master passphrase (PBKDF2 + AES-GCM)
+          and stored as ciphertext only. Plaintext lives in memory and is wiped on lock / after 15 min idle.
+          No GitHub token is stored here — you commit signed licenses yourself with git.</p>
 
         <label>Private key (PEM)</label>
-        <textarea value={keyInput} onChange={(e) => setKeyInput(e.target.value)} spellCheck={false} rows={5}
+        <textarea value={keyInput} onChange={(e) => setKeyInput(e.target.value)} spellCheck={false} rows={6}
           placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" />
-        <label>GitHub Personal Access Token <span className="muted">(fine-grained: Contents → Read & write, with an expiry)</span></label>
-        <input type="password" value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="github_pat_..." autoComplete="off" />
         <div className="btn-row">
           <button className="secondary" onClick={testKey} disabled={!keyInput}>Validate key</button>
         </div>
@@ -103,8 +86,8 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
               <div><label>Passphrase (min 6 chars)</label><input type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="new-password" /></div>
               <div><label>Confirm</label><input type="password" value={pass2} onChange={(e) => setPass2(e.target.value)} autoComplete="new-password" /></div>
             </div>
-            <div className="btn-row"><button onClick={createVaultNow} disabled={!keyInput || !tokenInput || !pass}>🔐 Create encrypted vault</button></div>
-            <p className="muted" style={{ fontSize: 12 }}>⚠️ There's no recovery — if you forget the passphrase you'll re-enter your key & token. (They're regenerable; GitHub data is untouched.)</p>
+            <div className="btn-row"><button onClick={createVaultNow} disabled={!keyInput || !pass}>🔐 Create encrypted vault</button></div>
+            <p className="muted" style={{ fontSize: 12 }}>⚠️ No recovery — forget the passphrase and you re-enter your key (it's regenerable; GitHub data is untouched).</p>
           </>
         ) : (
           <>
@@ -125,8 +108,9 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
       </div>
 
       <div className="card">
-        <h2>GitHub (license store)</h2>
-        <p className="muted">The repo must be <strong>public</strong> (or served via GitHub Pages) so deployed apps can read licenses.</p>
+        <h2>License store (repo coordinates)</h2>
+        <p className="muted">Used only to build the SDK URL and the file path for the licenses you commit. The repo must
+          be <strong>public</strong> (or served via GitHub Pages) so deployed apps can read it.</p>
         <div className="row">
           <div><label>Owner (user/org)</label><input value={net.owner} onChange={setN('owner')} placeholder="your-github-username" /></div>
           <div><label>Repo</label><input value={net.repo} onChange={setN('repo')} placeholder="ownerpay-licenses" /></div>
@@ -137,7 +121,6 @@ export default function Settings({ settings, onSave, secrets, session, hasVault,
         </div>
         <div className="btn-row">
           <button onClick={() => { onSave(net); setGhMsg({ ok: true, text: 'Saved.' }); }}>Save</button>
-          <button className="secondary" onClick={testGitHub} disabled={busy || !tokenInput || !net.owner}>{busy ? 'Testing…' : 'Test access'}</button>
         </div>
         {ghMsg && <div className={`notice ${ghMsg.ok ? 'ok' : 'err'}`}>{ghMsg.text}</div>}
       </div>

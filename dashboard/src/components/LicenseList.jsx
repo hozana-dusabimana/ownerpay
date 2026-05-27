@@ -21,8 +21,7 @@ export default function LicenseList({ licenses, onCreate, onOpen }) {
               <div key={lic._key} className="list-item" onClick={() => onOpen(lic._key)}>
                 <div className="grow">
                   <div><strong>{lic.project || '(untitled project)'}</strong></div>
-                  <div className="sub">{lic.client || 'no client'} · {lic.milestones.length} milestone(s)
-                    {lic.publishedUrl ? ' · published' : ' · not published'}</div>
+                  <div className="sub">{lic.client || 'no client'} · {lic.milestones.length} milestone(s)</div>
                 </div>
                 <span className={`pill ${state.level}`}>{state.level}</span>
               </div>

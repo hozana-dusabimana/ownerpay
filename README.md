@@ -25,11 +25,14 @@ dashboard. Mark the final milestone paid → the app returns to normal.
 GitHub *is* the backend:
 
 ```
-┌─ Dashboard (React) ──────┐   commit    ┌─ ownerpay-licenses repo ─┐  raw fetch  ┌─ SDK in delivered app ─┐
-│ holds your signing key   │ ─────────▶  │ licenses/<id>.jwt        │ ──────────▶ │ verify → enforce       │
-│ + GitHub token           │   (API)     │ served free via raw/Pages│             │ banner/lock/shutdown   │
+┌─ Dashboard (React) ──────┐  download   ┌─ ownerpay-licenses repo ─┐  raw fetch  ┌─ SDK in delivered app ─┐
+│ holds your signing key   │  + git      │ licenses/<id>.jwt        │ ──────────▶ │ verify → enforce       │
+│ (passphrase-encrypted)   │ ─ commit ─▶ │ served free via raw/Pages│             │ banner/lock/shutdown   │
 └──────────────────────────┘             └──────────────────────────┘             └────────────────────────┘
 ```
+
+The dashboard never stores a GitHub token — it signs licenses locally; you commit the
+`.jwt` with `git`. Your signing key is encrypted at rest behind a master passphrase.
 
 ## Repo layout
 
@@ -50,7 +53,8 @@ GitHub *is* the backend:
 1. `node tools/keygen.mjs` → creates `keys/private.pem` (keep secret) and
    `keys/public.pem` (ship in SDKs).
 2. `cd dashboard && npm install && npm run dev` → open the dashboard, paste your private
-   key + a GitHub token, add a client/project + milestones, click **Publish**.
+   key, set a master passphrase, add a client/project + milestones, then **Download .jwt**
+   and commit it to your license repo (the editor shows the exact `git` commands).
 3. Drop the matching SDK into the project you deliver, point it at your license URL, paste
    the public key. Done.
 

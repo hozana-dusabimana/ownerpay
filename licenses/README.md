@@ -1,7 +1,7 @@
 # The license store
 
 This folder is a stand-in for your **license store** — in real use it's its own GitHub
-repo (e.g. `ownerpay-licenses`) that the dashboard commits to and your deployed apps read.
+repo (e.g. `ownerpay-licenses`) that you commit signed licenses to and your deployed apps read.
 
 ## How it serves "for free, no server"
 
@@ -25,12 +25,13 @@ the `licenseId`.
 
 ## Flipping a client's status
 
-You never edit these by hand — the dashboard signs and commits for you:
+You never hand-edit the token — the dashboard signs it for you:
 
 1. Open the license in the dashboard.
 2. Toggle a milestone's **Paid** box (or set **Status: revoked** for an immediate kill).
-3. Click **Publish**. The new `.jwt` is committed; deployed apps pick it up on their next
-   check (per `policy.checkIntervalHours`).
+3. **Download .jwt**, drop it at `licenses/<id>.jwt` in this repo, and commit/push it (the
+   editor shows the exact `git` commands). Deployed apps pick it up on their next check
+   (per `policy.checkIntervalHours`).
 
 ## Files here
 
