@@ -1,0 +1,24 @@
+# NEVER commit signing keys — the private key can mint "paid" licenses.
+keys/
+*.pem
+!keys/public.example.pem
+
+# Dashboard secrets / local config
+dashboard/.env
+dashboard/.env.local
+
+# Dependencies & builds
+node_modules/
+dist/
+build/
+.vite/
+**/.dart_tool/
+sdk/java/out/
+
+# Local Claude harness config
+.claude/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,84 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1e222b;
+  --border: #2a2f3a;
+  --text: #e6e9ef;
+  --muted: #9aa3b2;
+  --accent: #4f8cff;
+  --active: #2ecc71;
+  --banner: #f1c40f;
+  --locked: #e67e22;
+  --shutdown: #e74c3c;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+a { color: var(--accent); }
+
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--panel);
+}
+.topbar h1 { font-size: 16px; margin: 0; letter-spacing: .5px; }
+.topbar .spacer { flex: 1; }
+.tab { background: none; border: none; color: var(--muted); cursor: pointer; padding: 6px 10px; border-radius: 6px; font-size: 14px; }
+.tab.active { color: var(--text); background: var(--panel-2); }
+
+.container { max-width: 920px; margin: 0 auto; padding: 24px 20px 80px; }
+
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+.card h2 { margin: 0 0 12px; font-size: 15px; }
+.card h3 { margin: 18px 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+input, textarea, select {
+  width: 100%; background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+}
+textarea { resize: vertical; min-height: 70px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+input[type=checkbox] { width: auto; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > div { flex: 1; min-width: 120px; }
+
+button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+button.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+button.danger { background: var(--shutdown); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { color: var(--muted); font-weight: 500; }
+
+.pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.pill.active { background: rgba(46,204,113,.15); color: var(--active); }
+.pill.banner { background: rgba(241,196,15,.15); color: var(--banner); }
+.pill.locked { background: rgba(230,126,34,.15); color: var(--locked); }
+.pill.shutdown { background: rgba(231,76,60,.15); color: var(--shutdown); }
+
+.muted { color: var(--muted); }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all; }
+.notice { padding: 10px 12px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
+.notice.err { background: rgba(231,76,60,.12); color: #ff9c8f; border: 1px solid rgba(231,76,60,.3); }
+.notice.ok { background: rgba(46,204,113,.12); color: #84e2a8; border: 1px solid rgba(46,204,113,.3); }
+
+.timeline { display: flex; height: 26px; border-radius: 6px; overflow: hidden; margin: 8px 0; border: 1px solid var(--border); }
+.timeline > div { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #0008; font-weight: 700; }
+.seg-active { background: var(--active); }
+.seg-banner { background: var(--banner); }
+.seg-locked { background: var(--locked); }
+.seg-shutdown { background: var(--shutdown); }
+
+.empty { text-align: center; color: var(--muted); padding: 40px 0; }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; background: var(--panel); cursor: pointer; }
+.list-item:hover { border-color: var(--accent); }
+.list-item .grow { flex: 1; }
+.list-item .sub { color: var(--muted); font-size: 12px; }
+.icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px 8px; }

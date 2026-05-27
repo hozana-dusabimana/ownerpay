@@ -1,0 +1,9 @@
+name: ownerpay
+description: OwnerPay license enforcement client for Dart / Flutter apps.
+version: 0.1.0
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  http: ^1.2.0
+  pointycastle: ^3.9.1
+  basic_utils: ^5.7.0

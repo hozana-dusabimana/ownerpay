@@ -1,0 +1,17 @@
+{
+  "sub": "ownerpay-demo",
+  "project": "Acme CRM (demo)",
+  "client": "Acme Ltd",
+  "status": "active",
+  "policy": {
+    "graceDays": 7,
+    "bannerDays": 14,
+    "lockDays": 14,
+    "checkIntervalHours": 24,
+    "offlineGraceDays": 14
+  },
+  "milestones": [
+    { "id": "deposit", "label": "Deposit", "amount": 200, "currency": "USD", "dueDate": "2026-01-01", "paid": true, "paidDate": "2025-12-20" },
+    { "id": "final", "label": "Final payment", "amount": 300, "currency": "USD", "dueDate": "2026-05-15", "paid": false }
+  ]
+}
